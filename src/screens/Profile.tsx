@@ -1,6 +1,8 @@
 import { useState } from "react"
-import { TouchableOpacity } from "react-native"
+import { Alert, TouchableOpacity } from "react-native"
 import * as ImagePicker from 'expo-image-picker'
+import * as FileSystem from 'expo-file-system'
+import { FileInfo } from "expo-file-system"
 import { Center, ScrollView, VStack, Skeleton, Text, Heading } from "native-base"
 
 import { ScreenHeader } from "@components/ScreenHeader"
@@ -15,18 +17,34 @@ export function Profile() {
   const [userPhoto, setUserPhoto] = useState("https://github.com/killer-cf.png")
 
   async function handleUserPhotoSelect() {
-    const photoSelected = await ImagePicker.launchImageLibraryAsync({
+    setPhotoIsLoading(true)
+    try {
+      const photoSelected = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
       aspect: [4, 4],
       allowsEditing: true,
-    })
+      })
 
-    if (photoSelected.canceled) {
-      return
+      if (photoSelected.canceled) return
+
+      const photoUri = photoSelected.assets[0].uri
+
+      if (photoUri) {
+        const photoInfo = await FileSystem.getInfoAsync(photoUri) as FileInfo
+        
+        if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 10) {
+          return Alert.alert("Essa imagem é muito grande. Escolha uma de até 5MB.")
+        }
+        setUserPhoto(photoUri)
+      }
+
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setPhotoIsLoading(false)
     }
-
-    setUserPhoto(photoSelected.assets[0].uri)
+    
   }
 
   return (
