@@ -1,9 +1,9 @@
 import { useState } from "react"
-import { Alert, TouchableOpacity } from "react-native"
+import { TouchableOpacity } from "react-native"
 import * as ImagePicker from 'expo-image-picker'
 import * as FileSystem from 'expo-file-system'
 import { FileInfo } from "expo-file-system"
-import { Center, ScrollView, VStack, Skeleton, Text, Heading } from "native-base"
+import { Center, ScrollView, VStack, Skeleton, Text, Heading, useToast } from "native-base"
 
 import { ScreenHeader } from "@components/ScreenHeader"
 import { UserPhoto } from "@components/UserPhoto"
@@ -15,6 +15,8 @@ const PHOTO_SIZE = 33
 export function Profile() {
   const [photoIsLoading, setPhotoIsLoading] = useState(false)
   const [userPhoto, setUserPhoto] = useState("https://github.com/killer-cf.png")
+
+  const toast = useToast()
 
   async function handleUserPhotoSelect() {
     setPhotoIsLoading(true)
@@ -34,7 +36,11 @@ export function Profile() {
         const photoInfo = await FileSystem.getInfoAsync(photoUri) as FileInfo
         
         if(photoInfo.size && (photoInfo.size / 1024 / 1024) > 10) {
-          return Alert.alert("Essa imagem é muito grande. Escolha uma de até 5MB.")
+          return toast.show({
+            title: "Essa imagem é muito grande. Escolha uma de até 10MB.",
+            placement: 'top',
+            bgColor: 'red.500'
+          })
         }
         setUserPhoto(photoUri)
       }
