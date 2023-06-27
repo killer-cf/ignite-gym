@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { TouchableOpacity } from "react-native"
+import * as ImagePicker from 'expo-image-picker'
 import { Center, ScrollView, VStack, Skeleton, Text, Heading } from "native-base"
 
 import { ScreenHeader } from "@components/ScreenHeader"
@@ -11,6 +12,22 @@ const PHOTO_SIZE = 33
 
 export function Profile() {
   const [photoIsLoading, setPhotoIsLoading] = useState(false)
+  const [userPhoto, setUserPhoto] = useState("https://github.com/killer-cf.png")
+
+  async function handleUserPhotoSelect() {
+    const photoSelected = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      aspect: [4, 4],
+      allowsEditing: true,
+    })
+
+    if (photoSelected.canceled) {
+      return
+    }
+
+    setUserPhoto(photoSelected.assets[0].uri)
+  }
 
   return (
     <VStack flex={1}>
@@ -29,13 +46,13 @@ export function Profile() {
               />
               :
               <UserPhoto 
-                source={{ uri: "https://github.com/killer-cf.png"}}
+                source={{ uri: userPhoto}}
                 alt="Foto do usuário"
                 size={PHOTO_SIZE}
               />
           }
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleUserPhotoSelect}>
             <Text color={"green.500"} fontWeight={"bold"} fontSize={"md"} mt={2} mb={8}>
               Alterar foto
             </Text>
