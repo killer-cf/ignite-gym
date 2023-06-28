@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Alert } from "react-native"
 import { VStack, Image, Text, Center, Heading, ScrollView, useToast } from "native-base"
 import { useNavigation } from "@react-navigation/native"
@@ -12,6 +13,7 @@ import BackgroundImg from '@assets/background.png'
 import { Input } from "@components/Input"
 import { Button } from "@components/Button"
 import { AppError } from "@utils/AppError"
+import { useAuth } from "@hooks/useAuth"
 
 const signUpSchema = yup.object({
   name: yup.string().required('Informe o nome.'),
@@ -23,12 +25,14 @@ const signUpSchema = yup.object({
 type FormDataProps = yup.InferType<typeof signUpSchema>
 
 export function SignUp() {
+  const [isLoading, setIsLoading] = useState(false)
+
   const { control, handleSubmit, formState: { errors} } = useForm<FormDataProps>({
     resolver: yupResolver(signUpSchema),
   })
 
   const toast = useToast()
-
+  const { signIn } = useAuth()
   const navigation = useNavigation()
 
   function handleGoBack() {
@@ -37,10 +41,15 @@ export function SignUp() {
 
   async function handleSignUp({ name, email, password }: FormDataProps) {
     try {
-      const response = await api.post('/users', {
-        name, email, password
-      })
+      setIsLoading(true)
+
+      await api.post('/users', { name, email, password })
+
+      await signIn(email, password)
+
     } catch (error) { 
+      setIsLoading(false)
+
       const isAppError = error instanceof AppError  
       const title = isAppError ? error.message : 'Não foi possível criar a conta. Tente novamente mais tarde'
       
@@ -134,7 +143,11 @@ export function SignUp() {
             )}
           />
 
-          <Button title="Criar e acessar" onPress={handleSubmit(handleSignUp)} />
+          <Button 
+            title="Criar e acessar" 
+            onPress={handleSubmit(handleSignUp)}
+            isLoading={isLoading}
+           />
         </Center>
 
         <Button 
