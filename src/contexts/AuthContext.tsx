@@ -1,8 +1,6 @@
 import { createContext, ReactNode } from "react";
 import { UserDTO } from "@dtos/UserDTO"
 
-export const AutContext = createContext({})
-
 type AuthContextProviderProps = {
   children: ReactNode
 }
