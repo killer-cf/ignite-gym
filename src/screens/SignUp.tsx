@@ -9,22 +9,17 @@ import BackgroundImg from '@assets/background.png'
 import { Input } from "@components/Input"
 import { Button } from "@components/Button"
 
-type FormDataProps = {
-  name: string
-  email: string
-  password: string
-  password_confirm: string
-}
-
 const signUpSchema = yup.object({
-  name: yup.string().required('Informe o nome'),
+  name: yup.string().required('Informe o nome.'),
   email: yup.string().required('Informe o e-mail').email('E-mail inválido'),
-  password: yup.string().required('Informe a senha').min(6, 'A senha deve ter ao menos 6 dígitos'),
-  password_confirm: yup.string().required('Confirme sua senha').oneOf([yup.ref('password')], 'As senhas não conferem.')
+  password: yup.string().required('Informe a senha.').min(6, 'A senha deve ter ao menos 6 dígitos'),
+  password_confirm: yup.string().required('Confirme sua senha').oneOf([yup.ref('password'),'As senhas não conferem.'])
 })
 
+type FormDataProps = yup.InferType<typeof signUpSchema>
+
 export function SignUp() {
-  const { control, handleSubmit, formState: { errors} } = useForm({
+  const { control, handleSubmit, formState: { errors} } = useForm<FormDataProps>({
     resolver: yupResolver(signUpSchema),
   })
 
