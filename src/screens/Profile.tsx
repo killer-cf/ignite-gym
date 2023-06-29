@@ -19,9 +19,24 @@ const PHOTO_SIZE = 33
 const profileFormSchema = yup.object({
   name: yup.string().required('Informe o novo nome'),
   email: yup.string(),
-  password: yup.string().min(6, 'A senha deve ter um mínimo de 6 caracteres').nullable().transform(value => !!value ? value : null),
+  password: yup
+    .string()
+    .min(6, 'A senha deve ter um mínimo de 6 caracteres')
+    .nullable()
+    .transform(value => !!value ? value : null),
   old_password: yup.string(),
-  confirm_password: yup.string().nullable().transform(value => !!value ? value : null).oneOf([yup.ref('password'), null], 'A confirmação de senha não confere'),
+  confirm_password: yup
+  .string()
+  .nullable()
+  .transform(value => !!value ? value : null)
+  .oneOf([yup.ref('password'), null], 'A confirmação de senha não confere')
+  .when('password', {
+    is: (Field: any) => Field,
+    then: (schema) => schema
+                        .nullable()
+                        .required('Informe a confirmação de senha')
+                        .transform(value => !!value ? value : null)
+  }),
 })
 
 type FormDataProps = yup.InferType<typeof profileFormSchema>
