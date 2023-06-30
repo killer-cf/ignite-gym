@@ -8,6 +8,7 @@ import { useForm, Controller } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 
+import defaultUserPhoto from '@assets/userPhotoDefault.png'
 import { ScreenHeader } from "@components/ScreenHeader"
 import { UserPhoto } from "@components/UserPhoto"
 import { Input } from "@components/Input"
@@ -45,7 +46,7 @@ type FormDataProps = yup.InferType<typeof profileFormSchema>
 
 export function Profile() {
   const [photoIsLoading, setPhotoIsLoading] = useState(false)
-  const [userPhoto, setUserPhoto] = useState("https://github.com/killer-cf.png")
+  const [userPhoto, setUserPhoto] = useState("")
 
   const toast = useToast()
   const { user, updateUserProfile } = useAuth()
@@ -62,10 +63,10 @@ export function Profile() {
     setPhotoIsLoading(true)
     try {
       const photoSelected = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
-      aspect: [4, 4],
-      allowsEditing: true,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        aspect: [4, 4],
+        allowsEditing: true,
       })
 
       if (photoSelected.canceled) return
@@ -82,7 +83,33 @@ export function Profile() {
             bgColor: 'red.500'
           })
         }
-        setUserPhoto(photoUri)
+
+        const fileExtension = photoUri.split('.').pop()
+        
+        const photoFile = {
+          name: `${user.name.replace(' ', '_')}.${fileExtension}`.toLowerCase(),
+          uri: photoUri,
+          type: `${photoSelected.assets[0].type}/${fileExtension}`
+        } as any
+        
+        const userPhotoUploadForm = new FormData()
+        userPhotoUploadForm.append('avatar', photoFile)
+
+        const avatarUpdatedResponse = await api.patch('/users/avatar', userPhotoUploadForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+
+        const userUpdated = user
+        userUpdated.avatar = avatarUpdatedResponse.data.avatar
+        updateUserProfile(userUpdated)
+
+        toast.show({
+          title: 'Foto atualizada',
+          placement: 'top',
+          bgColor: 'green.500'
+        })
       }
 
     } catch (error) {
@@ -137,7 +164,7 @@ export function Profile() {
               />
               :
               <UserPhoto 
-                source={{ uri: userPhoto}}
+                source={user.avatar ? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` } : defaultUserPhoto}
                 alt="Foto do usuário"
                 size={PHOTO_SIZE}
               />
